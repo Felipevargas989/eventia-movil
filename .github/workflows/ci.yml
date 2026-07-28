@@ -1,0 +1,21 @@
+# Eventia Móvil — el revisor: construye en cada push. (Las pruebas
+# llegan con las primeras pantallas de datos, Fase 1.)
+name: CI
+on:
+  push:
+  pull_request:
+    branches: [main]
+jobs:
+  movil:
+    runs-on: ubuntu-latest
+    env:
+      VITE_EVENTIA_API_REST: https://ci.invalid
+      VITE_SUPABASE_URL: https://ci.invalid
+      VITE_SUPABASE_ANON_KEY: ci
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+      - run: npm run build
