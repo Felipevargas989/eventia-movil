@@ -2,12 +2,19 @@
 // Service worker de Eventia Móvil: cachea el cascarón (workbox) y
 // recibe los PUSH del backend — al tocar la notificación, la app abre
 // directo en el detalle (deep link del handoff).
+import { clientsClaim } from "workbox-core";
 import { ExpirationPlugin } from "workbox-expiration";
 import { precacheAndRoute } from "workbox-precaching";
 import { registerRoute } from "workbox-routing";
 import { NetworkFirst } from "workbox-strategies";
 
 declare let self: ServiceWorkerGlobalScope;
+
+// ACTUALIZACIÓN AUTOMÁTICA (29-07, la lección): sin estas dos líneas
+// la versión nueva queda "esperando" eternamente y la app parece no
+// actualizarse nunca. Con ellas: cerrar y abrir = versión nueva.
+self.skipWaiting();
+clientsClaim();
 
 precacheAndRoute(self.__WB_MANIFEST);
 
