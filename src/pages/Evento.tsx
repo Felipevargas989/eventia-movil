@@ -144,11 +144,11 @@ export default function Evento() {
         <div className="space-y-1 text-sm">
           <div className="flex justify-between">
             <span className="text-gray-500">Total</span>
-            <span className="font-bold text-gray-900">{clp(total)}</span>
+            <span className="font-bold text-gray-900 tabular-nums">{clp(total)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-500">Pagado</span>
-            <span className="font-bold text-[#15803d]">{clp(pagado)}</span>
+            <span className="font-bold text-[#15803d] tabular-nums">{clp(pagado)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-500">Saldo</span>
@@ -165,27 +165,32 @@ export default function Evento() {
             {cuotas.map((c) => {
               const vencida = cuotaVencida(c, hoy);
               const pagada = c.status === "pagado" || c.paid_amount >= c.amount;
+              const color = pagada
+                ? "text-[#15803d]"
+                : vencida
+                  ? "text-[#b91c1c]"
+                  : "text-gray-500";
               return (
-                <div key={c.id} className="flex justify-between text-[13px]">
-                  <span className="text-gray-600">
-                    {c.notes || `Cuota ${c.payment_number}`}
-                    <span className="text-gray-400">
-                      {" "}
-                      · vence {fechaRelativa(c.due_date)}
-                    </span>
-                  </span>
-                  <span
-                    className={`font-semibold ${
-                      pagada
-                        ? "text-[#15803d]"
-                        : vencida
-                          ? "text-[#b91c1c]"
-                          : "text-gray-500"
-                    }`}
-                  >
-                    {pagada ? "Pagada" : vencida ? "Vencida" : "Pendiente"} ·{" "}
-                    {clp(c.amount)}
-                  </span>
+                <div
+                  key={c.id}
+                  className="flex items-start justify-between gap-3 py-1"
+                >
+                  <div className="min-w-0">
+                    <p className="text-[13px] font-medium text-gray-700 leading-snug">
+                      {c.notes || `Cuota ${c.payment_number}`}
+                    </p>
+                    <p className="text-[12px] text-gray-400">
+                      vence {fechaRelativa(c.due_date)}
+                    </p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className={`text-[12px] font-bold ${color}`}>
+                      {pagada ? "Pagada" : vencida ? "Vencida" : "Pendiente"}
+                    </p>
+                    <p className="text-[14px] font-bold text-gray-900 tabular-nums">
+                      {clp(c.amount)}
+                    </p>
+                  </div>
                 </div>
               );
             })}
@@ -203,11 +208,14 @@ export default function Evento() {
                 (a.transaction_date || "").localeCompare(b.transaction_date || ""),
               )
               .map((t) => (
-                <div key={t.id} className="flex justify-between text-[13px]">
-                  <span className="text-gray-500">
+                <div
+                  key={t.id}
+                  className="flex items-center justify-between gap-3 py-0.5 text-[13px]"
+                >
+                  <span className="text-gray-500 truncate">
                     {fechaRelativa(t.transaction_date)} · {t.payment_method}
                   </span>
-                  <span className="font-semibold text-gray-700">
+                  <span className="font-bold text-gray-800 tabular-nums shrink-0">
                     {clp(t.amount)}
                   </span>
                 </div>
