@@ -6,4 +6,9 @@ html,
 body {
   background: #f9fafb;
   -webkit-tap-highlight-color: transparent;
+  /* iPhone instalado: 100vh mide de más (barra fantasma) y deja un
+     tramo blanco al final del scroll; dvh mide lo visible real. El
+     overscroll evita el rebote hacia zona vacía. */
+  min-height: 100dvh;
+  overscroll-behavior-y: none;
 }

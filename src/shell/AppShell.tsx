@@ -86,7 +86,7 @@ export default function AppShell() {
     .toUpperCase();
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-[100dvh] bg-gray-50 flex flex-col">
       {ES_LABORATORIO && (
         <div className="bg-amber-400 text-amber-950 text-center text-[11px] font-bold py-1 tracking-wide">
           🧪 LABORATORIO — copia de prueba
