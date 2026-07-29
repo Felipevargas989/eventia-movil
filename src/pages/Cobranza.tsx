@@ -9,7 +9,9 @@ import { Cuota, cuotaVencida, getEventos, getPagos } from "../services/datos";
 // VENCIDOS y AL DÍA con el saldo por evento y su próxima cuota.
 interface FilaCobranza {
   id: string;
+  numero: number;
   cliente: string;
+  fechaEvento: string | null;
   saldo: number;
   vencido: boolean;
   proxima: Cuota | null;
@@ -42,7 +44,9 @@ export default function Cobranza() {
         const pendientes = propias.filter((c) => c.paid_amount < c.amount);
         return {
           id: e.id,
+          numero: e.quotation_number,
           cliente: e.clients?.name ?? "—",
+          fechaEvento: e.event_date,
           saldo,
           vencido: propias.some((c) => cuotaVencida(c, hoy)),
           proxima: pendientes[0] ?? null,
@@ -68,25 +72,40 @@ export default function Cobranza() {
     <button
       type="button"
       onClick={() => navigate(`/evento/${f.id}`)}
-      className="w-full flex items-center justify-between bg-white border border-gray-100 rounded-[14px] px-4 py-3 text-left shadow-[0_1px_2px_rgba(16,24,40,.05)]"
+      className="w-full flex items-center justify-between bg-white border border-gray-100 rounded-[14px] px-4 py-4 text-left shadow-[0_1px_2px_rgba(16,24,40,.05)]"
     >
       <div className="min-w-0 pr-3">
-        <p className="text-[14px] font-bold text-gray-900 truncate">
+        <p className="text-[11px] font-bold text-blue-600 mb-0.5">
+          Cotización N° {f.numero}
+          {f.fechaEvento && (
+            <span className="text-gray-400 font-semibold">
+              {" "}
+              · evento {fechaRelativa(f.fechaEvento)}
+            </span>
+          )}
+        </p>
+        <p className="text-[15px] font-bold text-gray-900 truncate">
           {f.cliente}
         </p>
         {f.proxima && (
-          <p className="text-xs text-gray-400">
-            Próxima cuota: vence {fechaRelativa(f.proxima.due_date)}
+          <p className="text-[12px] text-gray-400 mt-0.5">
+            Próxima cuota vence {fechaRelativa(f.proxima.due_date)} ·{" "}
+            {clp(f.proxima.amount - f.proxima.paid_amount)}
           </p>
         )}
       </div>
-      <span
-        className={`text-[14px] font-bold tabular-nums shrink-0 ${
-          f.vencido ? "text-[#b91c1c]" : "text-gray-900"
-        }`}
-      >
-        {clp(f.saldo)}
-      </span>
+      <div className="text-right shrink-0">
+        <p className="text-[10px] font-semibold text-gray-400 uppercase">
+          Saldo
+        </p>
+        <p
+          className={`text-[16px] font-extrabold tabular-nums ${
+            f.vencido ? "text-[#b91c1c]" : "text-gray-900"
+          }`}
+        >
+          {clp(f.saldo)}
+        </p>
+      </div>
     </button>
   );
 
