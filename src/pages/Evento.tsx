@@ -6,8 +6,10 @@ import {
   Phone,
   Users,
 } from "lucide-react";
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import ChipEstado from "../components/ChipEstado";
+import RegistrarPago from "../components/RegistrarPago";
 import { clp, fechaRelativa, hoyISO } from "../lib/formato";
 import { cuotaVencida, getEventos, getPagos } from "../services/datos";
 
@@ -17,6 +19,7 @@ import { cuotaVencida, getEventos, getPagos } from "../services/datos";
 export default function Evento() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [pagoAbierto, setPagoAbierto] = useState(false);
   const eventosQuery = useQuery({
     queryKey: ["eventos"],
     queryFn: getEventos,
@@ -69,7 +72,7 @@ export default function Evento() {
   }
 
   return (
-    <div className="px-4 pt-3 pb-6 space-y-3">
+    <div className="px-4 pt-3 pb-24 space-y-3">
       <button
         type="button"
         onClick={() => navigate(-1)}
@@ -224,9 +227,27 @@ export default function Evento() {
         )}
       </div>
 
-      <p className="text-center text-xs text-gray-400 pt-1">
-        Registrar pagos desde el teléfono llega en la Fase 2.
-      </p>
+      {["aceptada", "realizada"].includes(evento.quotation_status) &&
+        saldo > 0 && (
+          <div className="fixed bottom-[76px] inset-x-0 px-4 z-30">
+            <button
+              type="button"
+              onClick={() => setPagoAbierto(true)}
+              className="w-full py-3.5 bg-blue-600 text-white font-bold rounded-[14px] shadow-lg"
+            >
+              Registrar pago
+            </button>
+          </div>
+        )}
+
+      {pagoAbierto && (
+        <RegistrarPago
+          evento={evento}
+          cuotas={cuotas}
+          saldo={saldo}
+          onCerrar={() => setPagoAbierto(false)}
+        />
+      )}
     </div>
   );
 }

@@ -93,3 +93,55 @@ export const cuotaVencida = (c: Cuota, hoy: string): boolean =>
   c.status !== "pagado" &&
   (c.due_date || "").split("T")[0] < hoy &&
   c.paid_amount < c.amount;
+
+
+// ---------------- FASE 2: registrar un abono ------------------------
+// TODA la lógica de plata vive en el backend: el endpoint "overflow"
+// (el mismo del computador) reparte el monto entre las cuotas y
+// devuelve la distribución. El teléfono solo entrega monto, método y
+// comprobante (que entra por la puerta segura /storage).
+import { api } from "../lib/api";
+
+export interface ResultadoAbono {
+  total: number;
+  distribution: {
+    payment_id: string;
+    payment_number: number;
+    amount: number;
+    fully_paid: boolean;
+  }[];
+}
+
+export const registrarAbono = async (params: {
+  quotationId: string;
+  primerPagoId: string;
+  monto: number;
+  metodo: string;
+  comprobante: File | null;
+}): Promise<ResultadoAbono> => {
+  let receipt_photo_url: string | undefined;
+  if (params.comprobante) {
+    const form = new FormData();
+    form.append("file", params.comprobante);
+    form.append("kind", "payment-receipt");
+    form.append("quotation_id", params.quotationId);
+    form.append("payment_id", params.primerPagoId);
+    const { data } = await api.request({
+      url: "/storage/upload",
+      method: "POST",
+      data: form,
+      headers: { "Content-Type": undefined },
+    });
+    receipt_photo_url = (data as { url: string }).url;
+  }
+  const hoy = new Date();
+  const fecha = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}-${String(hoy.getDate()).padStart(2, "0")}`;
+  return apiRequest<ResultadoAbono>("/payments/transactions/overflow", "POST", {
+    quotation_id: params.quotationId,
+    amount: params.monto,
+    payment_method: params.metodo,
+    transaction_date: fecha,
+    notes: "Registrado desde Eventia Móvil",
+    ...(receipt_photo_url ? { receipt_photo_url } : {}),
+  });
+};

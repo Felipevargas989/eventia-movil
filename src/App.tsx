@@ -3,6 +3,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider, useAuth } from "./auth/AuthContext";
 import Login from "./pages/Login";
 import Agenda from "./pages/Agenda";
+import Cobranza from "./pages/Cobranza";
 import Evento from "./pages/Evento";
 import Placeholder from "./pages/Placeholder";
 import Precios from "./pages/Precios";
@@ -35,10 +36,7 @@ function Rutas() {
         <Route path="evento/:id" element={<Evento />} />
         <Route path="precios" element={<Precios />} />
         <Route path="resumen" element={<Resumen />} />
-        <Route
-          path="cobranza"
-          element={<Placeholder titulo="Cobranza" fase="Fase 2" />}
-        />
+        <Route path="cobranza" element={<Cobranza />} />
         <Route
           path="leads"
           element={<Placeholder titulo="Leads" fase="Fase 3" />}
