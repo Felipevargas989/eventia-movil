@@ -86,7 +86,7 @@ export default function AppShell() {
     .toUpperCase();
 
   return (
-    <div className="min-h-[100dvh] bg-gray-50 flex flex-col">
+    <div className="h-[100dvh] bg-gray-50 flex flex-col overflow-hidden">
       {ES_LABORATORIO && (
         <div className="bg-amber-400 text-amber-950 text-center text-[11px] font-bold py-1 tracking-wide">
           🧪 LABORATORIO — copia de prueba
@@ -98,7 +98,7 @@ export default function AppShell() {
         </div>
       )}
 
-      <header className="bg-white border-b border-gray-100 px-4 pt-3 pb-2 sticky top-0 z-20">
+      <header className="bg-white border-b border-gray-100 px-4 pt-3 pb-2 shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
             <Logo size={20} />
@@ -137,11 +137,11 @@ export default function AppShell() {
         </h1>
       </header>
 
-      <main className="flex-1 pb-20">
+      <main className="flex-1 overflow-y-auto overflow-x-hidden pb-6">
         <Outlet />
       </main>
 
-      <nav className="fixed bottom-0 inset-x-0 bg-white/90 backdrop-blur border-t border-[#eef0f3] flex justify-around pt-1.5 pb-[max(env(safe-area-inset-bottom),8px)] z-20">
+      <nav className="shrink-0 bg-white border-t border-[#eef0f3] flex justify-around pt-1.5 pb-[max(env(safe-area-inset-bottom),8px)]">
         {TABS.map((t) => {
           const Icono = t.icono;
           return (

@@ -22,7 +22,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-[100dvh] bg-gray-50 flex flex-col justify-center px-6">
+    <div className="h-[100dvh] overflow-y-auto bg-gray-50 flex flex-col justify-center px-6">
       <div className="max-w-sm w-full mx-auto">
         <div className="flex items-center justify-center gap-2 mb-2">
           <Logo size={40} />

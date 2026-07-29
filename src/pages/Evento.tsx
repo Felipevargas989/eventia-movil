@@ -273,7 +273,7 @@ export default function Evento() {
             El registro de pagos se habilita cuando la cotización pasa a
             Aceptada.
           </p>
-          <div className="fixed bottom-[76px] inset-x-0 px-4 z-30">
+          <div className="fixed bottom-[86px] inset-x-0 px-4 z-30">
             <button
               type="button"
               onClick={() => setEstadoAbierto(true)}
@@ -294,7 +294,7 @@ export default function Evento() {
 
       {["aceptada", "realizada"].includes(evento.quotation_status) &&
         saldo > 0 && (
-          <div className="fixed bottom-[76px] inset-x-0 px-4 z-30">
+          <div className="fixed bottom-[86px] inset-x-0 px-4 z-30">
             <button
               type="button"
               onClick={() => setPagoAbierto(true)}

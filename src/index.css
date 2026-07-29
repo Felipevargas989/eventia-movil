@@ -6,9 +6,14 @@ html,
 body {
   background: #f9fafb;
   -webkit-tap-highlight-color: transparent;
-  /* iPhone instalado: 100vh mide de más (barra fantasma) y deja un
-     tramo blanco al final del scroll; dvh mide lo visible real. El
-     overscroll evita el rebote hacia zona vacía. */
-  min-height: 100dvh;
-  overscroll-behavior-y: none;
+  /* ARQUITECTURA DE APP REAL (29-07): el cuerpo NUNCA scrollea — solo
+     el contenido del medio (main). Esto mata de una vez: la cola
+     blanca al final, el deslizamiento lateral y los íconos de abajo
+     bailando (los tres eran el scroll del body en la PWA de iOS). */
+  height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+#root {
+  height: 100dvh;
 }
