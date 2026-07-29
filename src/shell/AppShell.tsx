@@ -12,7 +12,8 @@ import {
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "../auth/AuthContext";
-import { getLeads } from "../services/datos";
+import { calcularAvisos, leidosGuardados } from "../lib/avisos";
+import { getEventos, getLeads, getPagos } from "../services/datos";
 import { ES_LABORATORIO } from "../lib/supabase";
 import Logo from "../components/Logo";
 
@@ -49,6 +50,22 @@ export default function AppShell() {
   const leadsNuevos = (leadsQuery.data ?? []).filter(
     (l) => l.quotation_status === "solicitada",
   ).length;
+  // Badge de Avisos: mismos cálculos de la pestaña (comparte caché).
+  const eventosQuery = useQuery({
+    queryKey: ["eventos"],
+    queryFn: getEventos,
+    staleTime: 60 * 1000,
+  });
+  const pagosQuery = useQuery({
+    queryKey: ["pagos"],
+    queryFn: getPagos,
+    staleTime: 60 * 1000,
+  });
+  const avisosNoLeidos = calcularAvisos(
+    eventosQuery.data ?? [],
+    pagosQuery.data ?? [],
+    leadsQuery.data ?? [],
+  ).filter((a) => !leidosGuardados().has(a.id)).length;
 
   useEffect(() => {
     const on = () => setOffline(false);
@@ -143,6 +160,11 @@ export default function AppShell() {
                 {t.nombre === "Leads" && leadsNuevos > 0 && (
                   <span className="absolute -top-1 -right-2 min-w-[16px] h-4 px-1 rounded-full bg-[#dc2626] text-white text-[9px] font-bold flex items-center justify-center">
                     {leadsNuevos}
+                  </span>
+                )}
+                {t.nombre === "Avisos" && avisosNoLeidos > 0 && (
+                  <span className="absolute -top-1 -right-2 min-w-[16px] h-4 px-1 rounded-full bg-[#dc2626] text-white text-[9px] font-bold flex items-center justify-center">
+                    {avisosNoLeidos}
                   </span>
                 )}
               </span>

@@ -191,3 +191,67 @@ export const crearPlanPagos = (quotationId: string, cuotas: CuotaPlan[]) =>
       notes: "",
     })),
   });
+
+
+// ---------------- FASE 4A: inventario -------------------------------
+export interface ItemMobiliario {
+  id: number;
+  name: string;
+  category: string;
+  stock: number;
+  photo_url: string | null;
+  is_active: boolean;
+}
+
+export interface Insumo {
+  id: number;
+  name: string;
+  unit_family: string;
+}
+
+export const getMobiliario = async (): Promise<ItemMobiliario[]> => {
+  const r = await apiRequest<ItemMobiliario[]>("/logistics/furniture", "GET");
+  return (r ?? []).filter((f) => f.is_active !== false);
+};
+
+export const getInsumos = async (): Promise<Insumo[]> => {
+  return apiRequest<Insumo[]>("/logistics/supplies", "GET");
+};
+
+export const crearMobiliario = (fields: {
+  name: string;
+  category: string;
+  stock: number;
+}) => apiRequest<ItemMobiliario>("/logistics/furniture", "POST", fields);
+
+export const actualizarFotoMobiliario = (id: number, photo_url: string) =>
+  apiRequest(`/logistics/furniture/${id}`, "PATCH", { photo_url });
+
+// Sube la foto por la puerta segura /storage (balde público de
+// mobiliario) y devuelve su URL.
+export const subirFotoMobiliario = async (
+  itemId: number,
+  foto: File,
+): Promise<string> => {
+  const form = new FormData();
+  form.append("file", foto);
+  form.append("kind", "furniture-photo");
+  form.append("item_id", String(itemId));
+  const { data } = await api.request({
+    url: "/storage/upload",
+    method: "POST",
+    data: form,
+    headers: { "Content-Type": undefined },
+  });
+  return (data as { url: string }).url;
+};
+
+export const CATEGORIAS_MOBILIARIO: [string, string][] = [
+  ["cristaleria", "Cristalería"],
+  ["cuchilleria", "Cuchillería"],
+  ["vajilla", "Vajilla"],
+  ["manteleria", "Mantelería"],
+  ["menaje", "Menaje y decoración"],
+  ["mobiliario", "Mobiliario"],
+  ["otro", "Otro"],
+];

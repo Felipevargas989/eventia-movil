@@ -3,10 +3,11 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider, useAuth } from "./auth/AuthContext";
 import Login from "./pages/Login";
 import Agenda from "./pages/Agenda";
+import Avisos from "./pages/Avisos";
+import Inventario from "./pages/Inventario";
 import Cobranza from "./pages/Cobranza";
 import Evento from "./pages/Evento";
 import Leads from "./pages/Leads";
-import Placeholder from "./pages/Placeholder";
 import Precios from "./pages/Precios";
 import Resumen from "./pages/Resumen";
 import AppShell from "./shell/AppShell";
@@ -39,14 +40,8 @@ function Rutas() {
         <Route path="resumen" element={<Resumen />} />
         <Route path="cobranza" element={<Cobranza />} />
         <Route path="leads" element={<Leads />} />
-        <Route
-          path="avisos"
-          element={<Placeholder titulo="Avisos" fase="Fase 3" />}
-        />
-        <Route
-          path="inventario"
-          element={<Placeholder titulo="Inventario" fase="Fase 4" />}
-        />
+        <Route path="avisos" element={<Avisos />} />
+        <Route path="inventario" element={<Inventario />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>
