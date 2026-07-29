@@ -362,3 +362,23 @@ export const marcar = (quotationId: string, clave: string, marcado: boolean) =>
     clave,
     marcado,
   });
+
+
+// ---------------- Detalle de cotización (PDF) -----------------------
+export interface DetalleCotizacion extends Evento {
+  tip_percentage: number | null;
+  subtotal_amount: number;
+  discount_amount: number;
+  discount_percentage: number;
+  items: EventItemsSnapshot | null;
+}
+
+export const getCotizacion = async (
+  id: string,
+): Promise<DetalleCotizacion | null> => {
+  const r = await apiRequest<{ data: DetalleCotizacion | null }>(
+    `/quotations/${id}`,
+    "GET",
+  );
+  return r.data ?? null;
+};
