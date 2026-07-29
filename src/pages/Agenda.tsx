@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { MapPin, Users } from "lucide-react";
+import { Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import ChipEstado from "../components/ChipEstado";
 import { fechaRelativa, hoyISO, soloFecha } from "../lib/formato";
@@ -58,9 +58,9 @@ export default function Agenda() {
       <div className="bg-gray-100 rounded-[10px] p-1 flex">
         {(
           [
-            ["semana", "Esta semana"],
-            ["mes", "Próximo mes"],
-            ["trimestre", "Próximos 3 meses"],
+            ["semana", "Semana"],
+            ["mes", "Mes"],
+            ["trimestre", "3 meses"],
           ] as const
         ).map(([valor, etiqueta]) => (
           <button
@@ -110,17 +110,13 @@ export default function Agenda() {
           <p className="text-base font-bold text-gray-900">
             {e.clients?.name ?? "—"}
           </p>
+          {/* Una sola línea limpia: tipo · 👥 N. El resto vive en la
+              ficha (acordado con Felipe 29-07). */}
           <p className="text-xs text-gray-500 flex items-center gap-2 mt-0.5">
             {e.event_type && <span>{e.event_type}</span>}
             {e.people_count ? (
               <span className="flex items-center gap-1">
-                <Users size={12} /> {e.people_count} personas
-              </span>
-            ) : null}
-            {e.observations ? (
-              <span className="flex items-center gap-1 truncate max-w-[40%]">
-                <MapPin size={12} />
-                <span className="truncate">{e.observations}</span>
+                <Users size={12} /> {e.people_count}
               </span>
             ) : null}
           </p>

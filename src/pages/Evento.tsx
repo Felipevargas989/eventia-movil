@@ -230,6 +230,15 @@ export default function Evento() {
         )}
       </div>
 
+      {evento.observations && (
+        <div className="bg-white border border-gray-100 rounded-[14px] p-4 shadow-[0_1px_2px_rgba(16,24,40,.05)]">
+          <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wide mb-1">
+            Observaciones
+          </p>
+          <p className="text-[13px] text-gray-600">{evento.observations}</p>
+        </div>
+      )}
+
       <button
         type="button"
         onClick={() => navigate(`/evento/${evento.id}/detalle`)}
