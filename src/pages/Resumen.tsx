@@ -4,7 +4,7 @@ import { ChevronLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import ChipEstado from "../components/ChipEstado";
 import { clp, fechaRelativa, hoyISO, soloFecha } from "../lib/formato";
-import { cuotaVencida, getEventos, getPagos } from "../services/datos";
+import { ES_EVENTO, cuotaVencida, getEventos, getPagos } from "../services/datos";
 
 // Pantalla 13 del handoff: 3 tarjetas — ventas del mes, por cobrar
 // (tap → Cobranza en Fase 2; por ahora informativo) y eventos próximos.
@@ -22,7 +22,9 @@ export default function Resumen() {
   });
 
   const datos = useMemo(() => {
-    const eventos = eventosQuery.data ?? [];
+    const eventos = (eventosQuery.data ?? []).filter((e) =>
+      ES_EVENTO(e.quotation_status),
+    );
     const cuotas = pagosQuery.data ?? [];
     const hoy = hoyISO();
     const mes = hoy.slice(0, 7);

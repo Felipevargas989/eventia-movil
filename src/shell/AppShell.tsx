@@ -10,7 +10,9 @@ import {
   UserRound,
   Users,
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "../auth/AuthContext";
+import { getLeads } from "../services/datos";
 import { ES_LABORATORIO } from "../lib/supabase";
 import Logo from "../components/Logo";
 
@@ -38,6 +40,15 @@ export default function AppShell() {
   const navigate = useNavigate();
   const [offline, setOffline] = useState(!navigator.onLine);
   const [perfilAbierto, setPerfilAbierto] = useState(false);
+  // Badge de Leads: solicitudes nuevas sin atender (60s de frescura).
+  const leadsQuery = useQuery({
+    queryKey: ["leads"],
+    queryFn: getLeads,
+    staleTime: 60 * 1000,
+  });
+  const leadsNuevos = (leadsQuery.data ?? []).filter(
+    (l) => l.quotation_status === "solicitada",
+  ).length;
 
   useEffect(() => {
     const on = () => setOffline(false);
@@ -127,7 +138,14 @@ export default function AppShell() {
                 }`
               }
             >
-              <Icono size={23} strokeWidth={2} />
+              <span className="relative">
+                <Icono size={23} strokeWidth={2} />
+                {t.nombre === "Leads" && leadsNuevos > 0 && (
+                  <span className="absolute -top-1 -right-2 min-w-[16px] h-4 px-1 rounded-full bg-[#dc2626] text-white text-[9px] font-bold flex items-center justify-center">
+                    {leadsNuevos}
+                  </span>
+                )}
+              </span>
               <span className="text-[10px] font-semibold">{t.nombre}</span>
             </NavLink>
           );

@@ -5,6 +5,7 @@ import Login from "./pages/Login";
 import Agenda from "./pages/Agenda";
 import Cobranza from "./pages/Cobranza";
 import Evento from "./pages/Evento";
+import Leads from "./pages/Leads";
 import Placeholder from "./pages/Placeholder";
 import Precios from "./pages/Precios";
 import Resumen from "./pages/Resumen";
@@ -37,10 +38,7 @@ function Rutas() {
         <Route path="precios" element={<Precios />} />
         <Route path="resumen" element={<Resumen />} />
         <Route path="cobranza" element={<Cobranza />} />
-        <Route
-          path="leads"
-          element={<Placeholder titulo="Leads" fase="Fase 3" />}
-        />
+        <Route path="leads" element={<Leads />} />
         <Route
           path="avisos"
           element={<Placeholder titulo="Avisos" fase="Fase 3" />}

@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { CheckCircle2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { clp, fechaRelativa, hoyISO } from "../lib/formato";
-import { Cuota, cuotaVencida, getEventos, getPagos } from "../services/datos";
+import { Cuota, ES_EVENTO, cuotaVencida, getEventos, getPagos } from "../services/datos";
 
 // Pantalla 7 del handoff: resumen Por cobrar / Vencido + secciones
 // VENCIDOS y AL DÍA con el saldo por evento y su próxima cuota.
@@ -35,6 +35,7 @@ export default function Cobranza() {
     const eventos = eventosQuery.data ?? [];
     const cuotas = pagosQuery.data ?? [];
     const filas: FilaCobranza[] = eventos
+      .filter((e) => ES_EVENTO(e.quotation_status))
       .map((e) => {
         const propias = cuotas
           .filter((c) => c.quotation_id === e.id)

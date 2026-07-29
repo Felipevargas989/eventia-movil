@@ -15,6 +15,7 @@ export interface Evento {
   tip_amount: number | null;
   contact_name: string | null;
   observations: string | null;
+  created_at: string;
   clients: {
     name: string;
     phone: string | null;
@@ -30,7 +31,7 @@ export const getEventos = async (): Promise<Evento[]> => {
     undefined,
     {
       request_type: "cotizacion",
-      statuses: ["aceptada", "realizada"],
+      statuses: ["enviada", "en_negociacion", "aceptada", "realizada"],
     },
   );
   return Array.isArray(data) ? data : (data.data ?? []);
@@ -145,3 +146,48 @@ export const registrarAbono = async (params: {
     ...(receipt_photo_url ? { receipt_photo_url } : {}),
   });
 };
+
+
+// ---------------- FASE 3A: leads + estado + plan de pagos -----------
+export const ES_EVENTO = (estado: string) =>
+  estado === "aceptada" || estado === "realizada";
+
+export const getLeads = async (): Promise<Evento[]> => {
+  const data = await apiRequest<Evento[] | { data: Evento[] }>(
+    "/quotations",
+    "GET",
+    undefined,
+    {
+      request_type: "requerimiento",
+      statuses: ["solicitada", "enviada", "en_negociacion"],
+    },
+  );
+  return Array.isArray(data) ? data : (data.data ?? []);
+};
+
+// Cambiar estado: el mismo PATCH del laptop. La regla del handoff:
+// aceptada/realizada NO se cambian desde el teléfono.
+export const cambiarEstado = (id: string, estado: string) =>
+  apiRequest(`/quotations/${id}`, "PATCH", { quotation_status: estado });
+
+// Plan de pagos al aceptar: el MISMO endpoint del laptop — crea las
+// cuotas y deja la cotización aceptada (y manda el correo).
+export interface CuotaPlan {
+  label: string;
+  due_date: string;
+  amount: number;
+}
+
+export const crearPlanPagos = (quotationId: string, cuotas: CuotaPlan[]) =>
+  apiRequest("/payments/plan", "POST", {
+    quotation_id: quotationId,
+    payments: cuotas.map((c, i) => ({
+      quotation_id: quotationId,
+      payment_number: i + 1,
+      amount: Math.round(c.amount),
+      due_date: c.due_date,
+      status: "pendiente",
+      payment_type: c.label,
+      notes: "",
+    })),
+  });

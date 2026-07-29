@@ -9,6 +9,7 @@ import {
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import ChipEstado from "../components/ChipEstado";
+import CambiarEstado from "../components/CambiarEstado";
 import RegistrarPago from "../components/RegistrarPago";
 import { clp, fechaRelativa, hoyISO } from "../lib/formato";
 import { cuotaVencida, getEventos, getPagos } from "../services/datos";
@@ -20,6 +21,7 @@ export default function Evento() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [pagoAbierto, setPagoAbierto] = useState(false);
+  const [estadoAbierto, setEstadoAbierto] = useState(false);
   const eventosQuery = useQuery({
     queryKey: ["eventos"],
     queryFn: getEventos,
@@ -226,6 +228,31 @@ export default function Evento() {
           </div>
         )}
       </div>
+
+      {!["aceptada", "realizada"].includes(evento.quotation_status) && (
+        <>
+          <p className="text-center text-xs text-gray-400">
+            El registro de pagos se habilita cuando la cotización pasa a
+            Aceptada.
+          </p>
+          <div className="fixed bottom-[76px] inset-x-0 px-4 z-30">
+            <button
+              type="button"
+              onClick={() => setEstadoAbierto(true)}
+              className="w-full py-3.5 border-2 border-blue-600 text-blue-600 bg-white font-bold rounded-[14px] shadow-lg"
+            >
+              Cambiar estado
+            </button>
+          </div>
+        </>
+      )}
+
+      {estadoAbierto && (
+        <CambiarEstado
+          evento={evento}
+          onCerrar={() => setEstadoAbierto(false)}
+        />
+      )}
 
       {["aceptada", "realizada"].includes(evento.quotation_status) &&
         saldo > 0 && (
