@@ -1,25 +1,40 @@
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, Share } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
-import Logo from "../components/Logo";
-import { clp, fechaRelativa } from "../lib/formato";
+import { useAuth } from "../auth/AuthContext";
+import { apiRequest } from "../lib/api";
+import { MenuOrden, hojaCotizacion } from "../lib/hojaCotizacion";
 import { getCotizacion } from "../services/datos";
 
-// Bloque D del handoff: ver el detalle de la cotización y
-// compartir/descargar el PDF. El botón usa el diálogo NATIVO del
-// teléfono (imprimir → guardar PDF / compartir) sobre esta misma
-// pantalla, que trae estilos de impresión limpios.
+// Bloque D del handoff, versión final (pedido de Felipe): la MISMA
+// hoja del laptop — el documento que recibe el cliente — en pantalla
+// y en el PDF. La plantilla vive portada línea a línea en
+// lib/hojaCotizacion.ts.
 export default function Detalle() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { perfil } = useAuth();
+
   const q = useQuery({
     queryKey: ["cotizacion", id],
     queryFn: () => getCotizacion(id!),
     enabled: !!id,
   });
+  const menuQuery = useQuery({
+    queryKey: ["menu-orden"],
+    queryFn: async () => {
+      try {
+        return await apiRequest<MenuOrden>("/sections/menu-order", "GET");
+      } catch {
+        return { categories: [], sections: [], links: [] };
+      }
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
   const c = q.data;
 
-  if (q.isPending) {
+  if (q.isPending || menuQuery.isPending) {
     return (
       <div className="p-4 space-y-3 animate-pulse">
         <div className="h-24 bg-gray-200 rounded-[14px]"></div>
@@ -35,132 +50,82 @@ export default function Detalle() {
     );
   }
 
-  const propina = c.tip_amount || 0;
+  const { css, body } = hojaCotizacion(
+    c,
+    perfil?.companies ?? null,
+    menuQuery.data ?? null,
+  );
+
+  const compartirPdf = () => {
+    const html = `<!DOCTYPE html>
+      <html lang="es"><head><meta charset="utf-8">
+      <title>Cotización ${c.quotation_number} - ${perfil?.companies?.name ?? ""}</title>
+      <style>body{margin:0;} ${css}</style>
+      </head><body>${body}</body></html>`;
+    const ventana = window.open("", "_blank");
+    if (ventana) {
+      ventana.document.write(html);
+      ventana.document.close();
+      setTimeout(() => ventana.print(), 500);
+      return;
+    }
+    // PWA instalada (iOS puede bloquear ventanas): iframe invisible.
+    const marco = document.createElement("iframe");
+    marco.style.position = "fixed";
+    marco.style.right = "0";
+    marco.style.bottom = "0";
+    marco.style.width = "0";
+    marco.style.height = "0";
+    marco.style.border = "0";
+    document.body.appendChild(marco);
+    marco.srcdoc = html;
+    marco.onload = () => {
+      setTimeout(() => {
+        marco.contentWindow?.print();
+        setTimeout(() => marco.remove(), 2000);
+      }, 300);
+    };
+  };
 
   return (
-    <div className="px-4 pt-3 pb-8 space-y-3">
-      <style>{`
-        @media print {
-          .no-imprimir { display: none !important; }
-          nav, header { display: none !important; }
-          body { background: white !important; }
-        }
-      `}</style>
-
-      <button
-        type="button"
-        onClick={() => navigate(-1)}
-        className="no-imprimir flex items-center gap-1 text-sm font-semibold text-gray-600 py-1"
-      >
-        <ChevronLeft size={18} /> Volver
-      </button>
-
-      <div className="bg-white border border-gray-100 rounded-[14px] p-5 shadow-[0_1px_2px_rgba(16,24,40,.05)]">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <Logo size={26} />
-            <span className="font-sora font-extrabold text-lg text-[#0B1F33]">
-              Eventia
-            </span>
-          </div>
-          <span className="text-[13px] font-bold text-gray-400">
-            Cotización N° {c.quotation_number}
-          </span>
-        </div>
-        <p className="text-lg font-bold text-gray-900">
-          {c.clients?.name ?? "—"}
-        </p>
-        <p className="text-sm text-gray-500">
-          {[c.event_type, fechaRelativa(c.event_date), c.people_count && `${c.people_count} personas`]
-            .filter(Boolean)
-            .join(" · ")}
-        </p>
-
-        {(c.items?.variable_services ?? []).map((caja, i) => (
-          <div key={i} className="mt-4">
-            <p className="text-[11px] font-bold text-blue-600 uppercase tracking-wide">
-              {(caja as { category?: string }).category ?? "Servicios"}
-              {caja.people ? ` · ${caja.people} personas` : ""}
-            </p>
-            <div className="divide-y divide-gray-50">
-              {(caja.items ?? []).map((it, j) => (
-                <div key={j} className="flex justify-between py-1.5 text-[13px]">
-                  <span className="text-gray-700 min-w-0 pr-3 truncate">
-                    {it.nombre}
-                    {(it.quantity ?? 1) > 1 ? ` ×${it.quantity}` : ""}
-                  </span>
-                  <span className="text-gray-500 tabular-nums shrink-0">
-                    {(it as { precio?: number }).precio
-                      ? clp((it as { precio?: number }).precio!)
-                      : ""}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-
-        {(c.items?.fixed_services ?? []).length > 0 && (
-          <div className="mt-4">
-            <p className="text-[11px] font-bold text-blue-600 uppercase tracking-wide">
-              Servicios fijos
-            </p>
-            <div className="divide-y divide-gray-50">
-              {(c.items?.fixed_services ?? []).map((it, j) => (
-                <div key={j} className="flex justify-between py-1.5 text-[13px]">
-                  <span className="text-gray-700 min-w-0 pr-3 truncate">
-                    {it.nombre}
-                  </span>
-                  <span className="text-gray-500 tabular-nums shrink-0">
-                    {(it as { precio?: number }).precio
-                      ? clp((it as { precio?: number }).precio!)
-                      : ""}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <div className="border-t border-gray-200 mt-4 pt-3 space-y-1 text-[14px]">
-          {c.subtotal_amount > 0 && c.subtotal_amount !== c.total_amount && (
-            <div className="flex justify-between text-gray-500">
-              <span>Subtotal</span>
-              <span className="tabular-nums">{clp(c.subtotal_amount)}</span>
-            </div>
-          )}
-          {(c.discount_amount || 0) > 0 && (
-            <div className="flex justify-between text-gray-500">
-              <span>
-                Descuento
-                {c.discount_percentage ? ` (${c.discount_percentage}%)` : ""}
-              </span>
-              <span className="tabular-nums">-{clp(c.discount_amount)}</span>
-            </div>
-          )}
-          {propina > 0 && (
-            <div className="flex justify-between text-gray-500">
-              <span>Propina{c.tip_percentage ? ` (${c.tip_percentage}%)` : ""}</span>
-              <span className="tabular-nums">{clp(propina)}</span>
-            </div>
-          )}
-          <div className="flex justify-between font-extrabold text-gray-900 text-[16px]">
-            <span>Total</span>
-            <span className="tabular-nums">{clp(c.total_amount)}</span>
-          </div>
-        </div>
+    <div className="pb-8">
+      <div className="px-4 pt-3 flex items-center justify-between no-imprimir">
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-1 text-sm font-semibold text-gray-600 py-1"
+        >
+          <ChevronLeft size={18} /> Volver
+        </button>
+        <button
+          type="button"
+          onClick={compartirPdf}
+          className="flex items-center gap-1.5 bg-blue-600 text-white text-[13px] font-bold px-3.5 py-2 rounded-xl"
+        >
+          <Share size={14} /> PDF
+        </button>
       </div>
 
-      <button
-        type="button"
-        onClick={() => window.print()}
-        className="no-imprimir w-full py-3.5 bg-blue-600 text-white font-bold rounded-[14px] shadow-lg flex items-center justify-center gap-2"
-      >
-        <Share size={17} /> Compartir / guardar PDF
-      </button>
-      <p className="no-imprimir text-center text-[11px] text-gray-400">
-        Se abre el diálogo del teléfono: ahí eliges Guardar como PDF,
-        AirDrop, WhatsApp o imprimir.
+      {/* La hoja OFICIAL, la misma del laptop, adaptada al ancho del
+          teléfono con un leve zoom-out para que se lea completa. */}
+      <style>{`
+        ${css}
+        .qv-envoltorio { overflow-x: auto; }
+        .qv-envoltorio .qv-hoja {
+          min-width: 640px;
+          transform-origin: top left;
+          box-shadow: 0 1px 8px rgba(16,24,40,.12);
+          margin: 12px;
+          border-radius: 8px;
+        }
+      `}</style>
+      <div className="qv-envoltorio">
+        <div dangerouslySetInnerHTML={{ __html: body }} />
+      </div>
+      <p className="text-center text-[11px] text-gray-400 px-6 no-imprimir">
+        El botón PDF abre el diálogo del teléfono: Guardar como PDF,
+        WhatsApp, AirDrop o imprimir. Es el mismo documento del
+        computador.
       </p>
     </div>
   );

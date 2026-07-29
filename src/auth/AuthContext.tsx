@@ -18,7 +18,12 @@ export interface Perfil {
   full_name: string | null;
   role: string;
   company_id: number;
-  companies?: { id: number; name: string } | null;
+  companies?: {
+    id: number;
+    name: string;
+    logo_url?: string | null;
+    colors?: { primary?: string; secondary?: string } | null;
+  } | null;
 }
 
 interface AuthValue {
