@@ -9,6 +9,11 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
+      // injectManifest: usamos NUESTRO service worker (src/sw.ts) para
+      // sumar los listeners de push a la precache de workbox.
+      strategies: "injectManifest",
+      srcDir: "src",
+      filename: "sw.ts",
       registerType: "autoUpdate",
       includeAssets: ["icono-192.png", "icono-512.png", "apple-touch-icon.png"],
       manifest: {
