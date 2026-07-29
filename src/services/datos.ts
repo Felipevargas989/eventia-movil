@@ -11,6 +11,7 @@ export interface Evento {
   event_date: string | null;
   event_end_date: string | null;
   people_count: number | null;
+  children_count: number | null;
   total_amount: number;
   tip_amount: number | null;
   contact_name: string | null;

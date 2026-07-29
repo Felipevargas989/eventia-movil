@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import {
   Calendar,
+  ChefHat,
   ChevronLeft,
   MessageCircle,
   Phone,
@@ -235,8 +236,8 @@ export default function Evento() {
           onClick={() => navigate(`/evento/${evento.id}/cocina`)}
           className="w-full flex items-center justify-between bg-white border border-gray-100 rounded-[14px] px-4 py-3.5 shadow-[0_1px_2px_rgba(16,24,40,.05)]"
         >
-          <span className="text-[14px] font-semibold text-gray-900">
-            🍳 Ficha de cocina
+          <span className="text-[14px] font-semibold text-gray-900 flex items-center gap-2">
+            <ChefHat size={17} className="text-gray-600" /> Ficha de cocina
           </span>
           <span className="text-[13px] font-semibold text-blue-600">
             Ver →

@@ -94,27 +94,39 @@ export default function Cocina() {
           : null;
       })
       .filter(Boolean) as { clave: string; nombre: string; detalle: string }[];
-    // Lista de servicios: las cajas del evento (cada una con SUS
-    // personas — Cotizador 2.0; ausente = personas del evento).
-    const vistos = new Set<string>();
-    const servicios: { name: string; people: number }[] = [];
-    (eventoCompras.items.variable_services ?? []).forEach((caja) => {
-      (caja.items ?? []).forEach((it) => {
-        if (vistos.has(it.nombre)) return;
-        vistos.add(it.nombre);
-        servicios.push({
-          name: it.nombre,
-          people: caja.people ?? eventoCompras.people_count ?? 0,
-        });
-      });
-    });
-    (eventoCompras.items.fixed_services ?? []).forEach((it) => {
-      if (vistos.has(it.nombre)) return;
-      vistos.add(it.nombre);
-      servicios.push({
-        name: it.nombre,
-        people: eventoCompras.people_count ?? 0,
-      });
+    // Horarios POR CATEGORÍA — calco exacto de FichaCocinaSection del
+    // laptop: cada CAJA de la cotización es un slot; si la categoría se
+    // repite, la clave lleva #2, #3… (misma clave = comparten los
+    // horarios ya guardados) y el rótulo "(2º)". Audiencia visible solo
+    // si el evento tiene niños.
+    const cajas = (eventoCompras.items.variable_services ?? []) as {
+      category?: string;
+      people?: number;
+      audience?: string;
+      items?: { nombre: string }[];
+    }[];
+    const kids = Number(evento?.children_count || 0);
+    const conteo = new Map<string, number>();
+    cajas.forEach((c) =>
+      conteo.set(c.category ?? "—", (conteo.get(c.category ?? "—") || 0) + 1),
+    );
+    const vistas = new Map<string, number>();
+    const servicios = cajas.map((c) => {
+      const cat = c.category ?? "—";
+      const n = (vistas.get(cat) || 0) + 1;
+      vistas.set(cat, n);
+      const repetida = (conteo.get(cat) || 1) > 1;
+      const audTag =
+        kids > 0 && c.audience
+          ? c.audience === "ninos"
+            ? " · Niños"
+            : " · Adultos"
+          : "";
+      return {
+        key: n === 1 ? cat : `${cat}#${n}`,
+        label: (repetida ? `${cat} (${n}º)` : cat) + audTag,
+        people: c.people ?? eventoCompras.people_count ?? 0,
+      };
     });
     return { insumos, mobiliario, servicios };
   }, [eventoCompras, baseQuery.data]);
@@ -242,15 +254,15 @@ export default function Cocina() {
           </p>
           <div className="space-y-3">
             {ficha.servicios.map((sv) => {
-              const hora = horariosQuery.data?.[sv.name] ?? "12:00";
+              const hora = horariosQuery.data?.[sv.key] ?? "12:00";
               return (
-                <div key={sv.name} className="flex items-center gap-3">
+                <div key={sv.key} className="flex items-center gap-3">
                   <div className="flex items-center gap-1 shrink-0">
                     <button
                       type="button"
                       onClick={() =>
                         horarioMut.mutate({
-                          servicio: sv.name,
+                          servicio: sv.key,
                           hora: sumar15(hora, -15),
                         })
                       }
@@ -266,7 +278,7 @@ export default function Cocina() {
                       type="button"
                       onClick={() =>
                         horarioMut.mutate({
-                          servicio: sv.name,
+                          servicio: sv.key,
                           hora: sumar15(hora, 15),
                         })
                       }
@@ -278,7 +290,7 @@ export default function Cocina() {
                   </div>
                   <div className="min-w-0">
                     <p className="text-[14px] font-semibold text-gray-900 truncate">
-                      {sv.name}
+                      {sv.label}
                     </p>
                     <p className="text-[11.5px] text-gray-400">
                       {sv.people} personas
