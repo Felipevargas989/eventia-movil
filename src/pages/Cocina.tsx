@@ -228,12 +228,6 @@ export default function Cocina() {
         )}
       </h2>
 
-      {evento?.observations && (
-        <div className="bg-[#fef3c7] border border-[#fde68a] rounded-[14px] p-3 text-[13px] text-[#854d0e]">
-          {evento.observations}
-        </div>
-      )}
-
       {cargando && (
         <div className="space-y-3 animate-pulse">
           <div className="h-32 bg-gray-200 rounded-[14px]"></div>
@@ -308,6 +302,16 @@ export default function Cocina() {
           <Checklist titulo="Retiro de bodega" items={ficha.insumos} />
           <Checklist titulo="Mobiliario a montar" items={ficha.mobiliario} />
         </>
+      )}
+
+      {/* Comentarios y notas AL FINAL (pedido de Felipe 29-07). */}
+      {evento?.observations && (
+        <div className="bg-[#fef3c7] border border-[#fde68a] rounded-[14px] p-3 text-[13px] text-[#854d0e]">
+          <p className="text-[10px] font-bold uppercase tracking-wide mb-1 text-[#a16207]">
+            Comentarios y notas del evento
+          </p>
+          {evento.observations}
+        </div>
       )}
     </div>
   );
