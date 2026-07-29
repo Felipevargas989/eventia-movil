@@ -255,3 +255,109 @@ export const CATEGORIAS_MOBILIARIO: [string, string][] = [
   ["mobiliario", "Mobiliario"],
   ["otro", "Otro"],
 ];
+
+
+// ---------------- FASE 4B: ficha de cocina --------------------------
+// El evento CON sus items (fuente del motor de recetas) viene de la
+// puerta existente de compras; el catálogo, del paquete Velocidad 2.0.
+import type { EventItemsSnapshot } from "../lib/eventConsolidation";
+import type {
+  FurnitureItem,
+  RecipeItem,
+  Supply,
+} from "../lib/logistics.types";
+
+export interface EventoCompras {
+  id: string;
+  quotation_number: number;
+  client_name?: string;
+  people_count: number | null;
+  event_date: string | null;
+  items: EventItemsSnapshot;
+}
+
+export const getEventosCompras = async (): Promise<EventoCompras[]> => {
+  const data = await apiRequest<Record<string, unknown>[]>(
+    "/logistics/purchasing/accepted-events",
+    "GET",
+  );
+  return (data ?? []).map((q) => ({
+    ...(q as unknown as EventoCompras),
+    client_name:
+      ((q.clients as { name?: string } | null)?.name as string) || "—",
+  }));
+};
+
+export const getBaseCocina = async (): Promise<{
+  recipes: RecipeItem[];
+  supplies: Supply[];
+  furniture: FurnitureItem[];
+  nameIds: { variable: Record<string, number>; fixed: Record<string, number> };
+}> => {
+  const data = await apiRequest<{
+    recipes: RecipeItem[];
+    supplies: Supply[];
+    furniture: FurnitureItem[];
+    nameIds: { variable: { id: number; name: string }[]; fixed: { id: number; name: string }[] };
+  }>("/logistics/base-catalogo", "GET");
+  // MISMA función canónica del laptop (searchMatch.canonicalServiceName)
+  // — si difiere en un espacio, las recetas no calzan.
+  const norm = (t: string) =>
+    t
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/^\s*\d+\s*-\s*/, "")
+      .replace(/(\d)\s*pp\b/g, "$1 pp")
+      .replace(/\s+/g, " ")
+      .trim();
+  const variable: Record<string, number> = {};
+  (data.nameIds?.variable ?? []).forEach((s) => (variable[norm(s.name)] = s.id));
+  const fixed: Record<string, number> = {};
+  (data.nameIds?.fixed ?? []).forEach((s) => (fixed[norm(s.name)] = s.id));
+  return {
+    recipes: data.recipes ?? [],
+    supplies: data.supplies ?? [],
+    furniture: data.furniture ?? [],
+    nameIds: { variable, fixed },
+  };
+};
+
+export const getHorarios = async (
+  quotationId: string,
+): Promise<Record<string, string>> => {
+  const data = await apiRequest<{ service_name: string; start_time: string }[]>(
+    "/logistics/kitchen/times",
+    "GET",
+    undefined,
+    { quotationId },
+  );
+  const map: Record<string, string> = {};
+  (data ?? []).forEach((r) => (map[r.service_name] = r.start_time));
+  return map;
+};
+
+export const ponerHorario = (
+  quotationId: string,
+  serviceName: string,
+  startTime: string,
+) =>
+  apiRequest("/logistics/kitchen/times", "POST", {
+    quotation_id: quotationId,
+    service_name: serviceName,
+    start_time: startTime,
+  });
+
+export const getMarcas = async (quotationId: string): Promise<Set<string>> => {
+  const r = await apiRequest<{ marcas: { clave: string }[] }>(
+    `/movil/cocina/${quotationId}/marcas`,
+    "GET",
+  );
+  return new Set((r.marcas ?? []).map((m) => m.clave));
+};
+
+export const marcar = (quotationId: string, clave: string, marcado: boolean) =>
+  apiRequest(`/movil/cocina/${quotationId}/marcas`, "POST", {
+    clave,
+    marcado,
+  });

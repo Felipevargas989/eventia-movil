@@ -6,6 +6,7 @@ import Agenda from "./pages/Agenda";
 import Avisos from "./pages/Avisos";
 import Inventario from "./pages/Inventario";
 import Cobranza from "./pages/Cobranza";
+import Cocina from "./pages/Cocina";
 import Evento from "./pages/Evento";
 import Leads from "./pages/Leads";
 import Precios from "./pages/Precios";
@@ -36,6 +37,7 @@ function Rutas() {
       <Route element={<AppShell />}>
         <Route index element={<Agenda />} />
         <Route path="evento/:id" element={<Evento />} />
+        <Route path="evento/:id/cocina" element={<Cocina />} />
         <Route path="precios" element={<Precios />} />
         <Route path="resumen" element={<Resumen />} />
         <Route path="cobranza" element={<Cobranza />} />
