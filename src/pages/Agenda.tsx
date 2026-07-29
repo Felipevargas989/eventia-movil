@@ -110,12 +110,12 @@ export default function Agenda() {
           <p className="text-base font-bold text-gray-900">
             {e.clients?.name ?? "—"}
           </p>
-          {/* Una sola línea limpia: tipo · 👥 N. El resto vive en la
-              ficha (acordado con Felipe 29-07). */}
-          <p className="text-xs text-gray-500 flex items-center gap-2 mt-0.5">
-            {e.event_type && <span>{e.event_type}</span>}
+          {/* Tipo a la izquierda; 👥 N SIEMPRE en la misma columna a la
+              derecha (acordado con Felipe 29-07). */}
+          <p className="text-xs text-gray-500 flex items-center justify-between gap-2 mt-0.5">
+            <span className="truncate">{e.event_type ?? ""}</span>
             {e.people_count ? (
-              <span className="flex items-center gap-1">
+              <span className="flex items-center gap-1 shrink-0 tabular-nums">
                 <Users size={12} /> {e.people_count}
               </span>
             ) : null}
