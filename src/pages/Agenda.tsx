@@ -8,11 +8,24 @@ import { getEventos } from "../services/datos";
 
 // Pantalla 4 del handoff: segmentos Hoy/Semana/Mes + tarjetas de
 // evento. Los eventos SON cotizaciones (aceptada/realizada) con fecha.
-type Segmento = "hoy" | "semana" | "mes";
+type Segmento = "semana" | "mes" | "trimestre";
+
+// 29-07 (pedido de Felipe): "Hoy" casi siempre estaba vacío y además
+// cada recarga volvía a él (la pantalla nacía de nuevo con su valor
+// por defecto). Ahora los rangos son útiles y el elegido SE RECUERDA.
+const SEGMENTO_GUARDADO = "eventia_agenda_segmento";
+const segmentoInicial = (): Segmento => {
+  const g = localStorage.getItem(SEGMENTO_GUARDADO);
+  return g === "mes" || g === "trimestre" ? g : "semana";
+};
 
 export default function Agenda() {
   const navigate = useNavigate();
-  const [segmento, setSegmento] = useState<Segmento>("hoy");
+  const [segmento, setSegmentoEstado] = useState<Segmento>(segmentoInicial);
+  const setSegmento = (v: Segmento) => {
+    setSegmentoEstado(v);
+    localStorage.setItem(SEGMENTO_GUARDADO, v);
+  };
   const eventosQuery = useQuery({
     queryKey: ["eventos"],
     queryFn: getEventos,
@@ -25,6 +38,7 @@ export default function Agenda() {
     const fin = new Date();
     if (segmento === "semana") fin.setDate(fin.getDate() + 7);
     if (segmento === "mes") fin.setMonth(fin.getMonth() + 1);
+    if (segmento === "trimestre") fin.setMonth(fin.getMonth() + 3);
     const finISO = `${fin.getFullYear()}-${String(fin.getMonth() + 1).padStart(2, "0")}-${String(fin.getDate()).padStart(2, "0")}`;
     return todos
       .filter((e) => {
@@ -32,7 +46,7 @@ export default function Agenda() {
         const cierre = soloFecha(e.event_end_date) || inicio;
         // El evento aparece si su rango toca el segmento (multi-día
         // incluido): aún no termina y ya partió dentro del límite.
-        return cierre >= hoy && inicio <= (segmento === "hoy" ? hoy : finISO);
+        return cierre >= hoy && inicio <= finISO;
       })
       .sort((a, b) =>
         soloFecha(a.event_date).localeCompare(soloFecha(b.event_date)),
@@ -44,9 +58,9 @@ export default function Agenda() {
       <div className="bg-gray-100 rounded-[10px] p-1 flex">
         {(
           [
-            ["hoy", "Hoy"],
             ["semana", "Esta semana"],
-            ["mes", "Este mes"],
+            ["mes", "Próximo mes"],
+            ["trimestre", "Próximos 3 meses"],
           ] as const
         ).map(([valor, etiqueta]) => (
           <button
