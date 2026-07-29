@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -57,10 +57,21 @@ export default function Resumen() {
       )
       .slice(0, 5);
 
-    return { ventasMes, eventosMes: delMes.length, porCobrar, vencido, proximos };
+    const ventasDetalle = [...delMes].sort((a, b) =>
+      soloFecha(a.event_date).localeCompare(soloFecha(b.event_date)),
+    );
+    return {
+      ventasMes,
+      eventosMes: delMes.length,
+      ventasDetalle,
+      porCobrar,
+      vencido,
+      proximos,
+    };
   }, [eventosQuery.data, pagosQuery.data]);
 
   const cargando = eventosQuery.isPending || pagosQuery.isPending;
+  const [verVentas, setVerVentas] = useState(false);
 
   return (
     <div className="px-4 pt-3 pb-6 space-y-3">
@@ -83,10 +94,11 @@ export default function Resumen() {
         </div>
       ) : (
         <>
-          {/* Tap → Leads (así estaba en el prototipo; pillada de Felipe). */}
+          {/* Tap → despliega LOS EVENTOS que componen la venta (29-07:
+              Leads no tenía nada que ver; mejor la composición). */}
           <button
             type="button"
-            onClick={() => navigate("/leads")}
+            onClick={() => setVerVentas((v) => !v)}
             className="w-full text-left bg-blue-600 rounded-[16px] p-5 text-white shadow"
           >
             <p className="text-[12px] font-semibold text-blue-100 uppercase tracking-wide">
@@ -96,9 +108,36 @@ export default function Resumen() {
               {clp(datos.ventasMes)}
             </p>
             <p className="text-[12px] text-blue-100">
-              {datos.eventosMes} eventos aceptados o realizados
+              {datos.eventosMes} eventos aceptados o realizados ·{" "}
+              {verVentas ? "ocultar detalle ▲" : "ver detalle ▼"}
             </p>
           </button>
+
+          {verVentas && (
+            <div className="bg-white border border-gray-100 rounded-[16px] p-2 shadow-[0_1px_2px_rgba(16,24,40,.05)] divide-y divide-gray-50">
+              {datos.ventasDetalle.map((e) => (
+                <button
+                  key={e.id}
+                  type="button"
+                  onClick={() => navigate(`/evento/${e.id}`)}
+                  className="w-full flex items-center justify-between px-3 py-2.5 text-left"
+                >
+                  <span className="min-w-0 pr-3">
+                    <span className="block text-[13px] font-bold text-gray-900 truncate">
+                      {e.clients?.name ?? "—"}
+                    </span>
+                    <span className="block text-[11px] text-gray-400">
+                      {fechaRelativa(e.event_date)}
+                      {e.event_type ? ` · ${e.event_type}` : ""}
+                    </span>
+                  </span>
+                  <span className="text-[13px] font-bold text-gray-900 tabular-nums shrink-0">
+                    {clp((e.total_amount || 0) - (e.tip_amount || 0))}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* Tap → Cobranza (pantalla 13 del handoff). */}
           <button
