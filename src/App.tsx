@@ -2,7 +2,11 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider, useAuth } from "./auth/AuthContext";
 import Login from "./pages/Login";
+import Agenda from "./pages/Agenda";
+import Evento from "./pages/Evento";
 import Placeholder from "./pages/Placeholder";
+import Precios from "./pages/Precios";
+import Resumen from "./pages/Resumen";
 import AppShell from "./shell/AppShell";
 
 const queryClient = new QueryClient();
@@ -27,10 +31,10 @@ function Rutas() {
   return (
     <Routes>
       <Route element={<AppShell />}>
-        <Route
-          index
-          element={<Placeholder titulo="Agenda" fase="Fase 1" />}
-        />
+        <Route index element={<Agenda />} />
+        <Route path="evento/:id" element={<Evento />} />
+        <Route path="precios" element={<Precios />} />
+        <Route path="resumen" element={<Resumen />} />
         <Route
           path="cobranza"
           element={<Placeholder titulo="Cobranza" fase="Fase 2" />}

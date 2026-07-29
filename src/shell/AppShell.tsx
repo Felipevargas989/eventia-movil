@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { NavLink, Outlet, useLocation } from "react-router-dom";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   Banknote,
   BarChart3,
@@ -35,6 +35,7 @@ const TITULOS: Record<string, string> = {
 export default function AppShell() {
   const { perfil, salir } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [offline, setOffline] = useState(!navigator.onLine);
   const [perfilAbierto, setPerfilAbierto] = useState(false);
 
@@ -80,15 +81,17 @@ export default function AppShell() {
           <div className="flex items-center gap-2">
             <button
               type="button"
+              onClick={() => navigate("/precios")}
               className="p-2 rounded-full hover:bg-gray-100"
-              title="Consulta de precios (Fase 1)"
+              title="Consulta de precios"
             >
               <Search size={18} className="text-gray-500" />
             </button>
             <button
               type="button"
+              onClick={() => navigate("/resumen")}
               className="p-2 rounded-full hover:bg-gray-100"
-              title="Resumen de negocio (Fase 1)"
+              title="Resumen de negocio"
             >
               <BarChart3 size={18} className="text-gray-500" />
             </button>

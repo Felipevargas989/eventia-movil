@@ -6,6 +6,10 @@ import { supabase } from "./supabase";
 export const api = axios.create({
   baseURL: import.meta.env.VITE_EVENTIA_API_REST,
   headers: { "Content-Type": "application/json" },
+  // Los filtros de lista viajan repetidos SIN corchetes
+  // (statuses=a&statuses=b): es lo que espera la validación del
+  // backend (medido contra el laboratorio, 28-07).
+  paramsSerializer: { indexes: null },
 });
 
 api.interceptors.request.use(async (config) => {
