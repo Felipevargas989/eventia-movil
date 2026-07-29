@@ -6,7 +6,6 @@ import {
   ItemMobiliario,
   actualizarFotoMobiliario,
   crearMobiliario,
-  getInsumos,
   getMobiliario,
   subirFotoMobiliario,
 } from "../services/datos";
@@ -15,11 +14,8 @@ import {
 // columnas con foto o placeholder, FAB de alta simple y sheet de ítem
 // con tomar/reemplazar foto. Los insumos ganan foto con la migración
 // 43 (por ahora, solo listado).
-type Filtro = "todos" | "mobiliario" | "insumos";
-
 export default function Inventario() {
   const queryClient = useQueryClient();
-  const [filtro, setFiltro] = useState<Filtro>("todos");
   const [abierto, setAbierto] = useState<ItemMobiliario | null>(null);
   const [altaAbierta, setAltaAbierta] = useState(false);
   const [nombre, setNombre] = useState("");
@@ -36,33 +32,20 @@ export default function Inventario() {
     queryFn: getMobiliario,
     staleTime: 60 * 1000,
   });
-  const insumosQuery = useQuery({
-    queryKey: ["insumos"],
-    queryFn: getInsumos,
-    staleTime: 5 * 60 * 1000,
-  });
-
-  const tarjetas = useMemo(() => {
-    const mob = (mobiliarioQuery.data ?? []).map((f) => ({
-      tipo: "mobiliario" as const,
-      id: `m${f.id}`,
-      item: f,
-      nombre: f.name,
-      detalle: `${CATEGORIAS_MOBILIARIO.find(([v]) => v === f.category)?.[1] ?? f.category} · ${f.stock} uds`,
-      foto: f.photo_url,
-    }));
-    const ins = (insumosQuery.data ?? []).map((i) => ({
-      tipo: "insumos" as const,
-      id: `i${i.id}`,
-      item: null,
-      nombre: i.name,
-      detalle: `Insumo · ${i.unit_family}`,
-      foto: null as string | null,
-    }));
-    if (filtro === "mobiliario") return mob;
-    if (filtro === "insumos") return ins;
-    return [...mob, ...ins];
-  }, [mobiliarioQuery.data, insumosQuery.data, filtro]);
+  // Solo MOBILIARIO (validado contra la web 29-07: las fotos viven en
+  // mobiliario; insumos es una lista técnica sin fotos — su foto llega
+  // recién con la migración 43, si algún día se necesita).
+  const tarjetas = useMemo(
+    () =>
+      (mobiliarioQuery.data ?? []).map((f) => ({
+        id: `m${f.id}`,
+        item: f,
+        nombre: f.name,
+        detalle: `${CATEGORIAS_MOBILIARIO.find(([v]) => v === f.category)?.[1] ?? f.category} · ${f.stock} uds`,
+        foto: f.photo_url,
+      })),
+    [mobiliarioQuery.data],
+  );
 
   const guardarAlta = async () => {
     if (!nombre.trim() || guardando) return;
@@ -102,30 +85,7 @@ export default function Inventario() {
 
   return (
     <div className="px-4 pt-3 pb-6">
-      <div className="flex gap-2 mb-3">
-        {(
-          [
-            ["todos", "Todos"],
-            ["mobiliario", "Mobiliario"],
-            ["insumos", "Insumos"],
-          ] as const
-        ).map(([valor, etiqueta]) => (
-          <button
-            key={valor}
-            type="button"
-            onClick={() => setFiltro(valor)}
-            className={`px-3.5 py-1.5 rounded-full text-[13px] font-semibold ${
-              filtro === valor
-                ? "bg-blue-600 text-white"
-                : "bg-gray-100 text-gray-600"
-            }`}
-          >
-            {etiqueta}
-          </button>
-        ))}
-      </div>
-
-      {(mobiliarioQuery.isPending || insumosQuery.isPending) && (
+      {mobiliarioQuery.isPending && (
         <div className="grid grid-cols-2 gap-3 animate-pulse">
           {[0, 1, 2, 3].map((i) => (
             <div key={i} className="h-40 bg-gray-200 rounded-[14px]"></div>
