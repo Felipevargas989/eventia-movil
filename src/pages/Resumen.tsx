@@ -83,7 +83,12 @@ export default function Resumen() {
         </div>
       ) : (
         <>
-          <div className="bg-blue-600 rounded-[16px] p-5 text-white shadow">
+          {/* Tap → Leads (así estaba en el prototipo; pillada de Felipe). */}
+          <button
+            type="button"
+            onClick={() => navigate("/leads")}
+            className="w-full text-left bg-blue-600 rounded-[16px] p-5 text-white shadow"
+          >
             <p className="text-[12px] font-semibold text-blue-100 uppercase tracking-wide">
               Ventas del mes
             </p>
@@ -93,9 +98,14 @@ export default function Resumen() {
             <p className="text-[12px] text-blue-100">
               {datos.eventosMes} eventos aceptados o realizados
             </p>
-          </div>
+          </button>
 
-          <div className="bg-white border border-gray-100 rounded-[16px] p-5 shadow-[0_1px_2px_rgba(16,24,40,.05)]">
+          {/* Tap → Cobranza (pantalla 13 del handoff). */}
+          <button
+            type="button"
+            onClick={() => navigate("/cobranza")}
+            className="w-full text-left bg-white border border-gray-100 rounded-[16px] p-5 shadow-[0_1px_2px_rgba(16,24,40,.05)]"
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-[12px] font-semibold text-gray-400 uppercase tracking-wide">
@@ -111,7 +121,7 @@ export default function Resumen() {
                 </span>
               )}
             </div>
-          </div>
+          </button>
 
           <div className="bg-white border border-gray-100 rounded-[16px] p-4 shadow-[0_1px_2px_rgba(16,24,40,.05)]">
             <p className="text-[12px] font-semibold text-gray-400 uppercase tracking-wide mb-2">
