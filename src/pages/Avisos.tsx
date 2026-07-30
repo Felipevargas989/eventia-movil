@@ -27,6 +27,9 @@ export default function Avisos() {
   const pagosQuery = useQuery({ queryKey: ["pagos"], queryFn: getPagos, staleTime: 60 * 1000 });
   const leadsQuery = useQuery({ queryKey: ["leads"], queryFn: getLeads, staleTime: 60 * 1000 });
   const [leidos, setLeidos] = useState<Set<string>>(leidosGuardados);
+  // Las leídas DESAPARECEN de la lista (Felipe 30-07: "si no, es una
+  // lista eterna"); este enlace las trae de vuelta para repasar.
+  const [mostrarLeidas, setMostrarLeidas] = useState(false);
   const [estadoPush, setEstadoPush] = useEstadoPush<
     "inactivo" | "activando" | "activado" | "denegado" | "error"
   >(
@@ -65,6 +68,9 @@ export default function Avisos() {
   const cargando =
     eventosQuery.isPending || pagosQuery.isPending || leadsQuery.isPending;
   const noLeidos = avisos.filter((a) => !leidos.has(a.id)).length;
+  const visibles = mostrarLeidas
+    ? avisos
+    : avisos.filter((a) => !leidos.has(a.id));
 
   return (
     <div className="px-4 pt-3 pb-6 space-y-2">
@@ -98,6 +104,17 @@ export default function Avisos() {
           Marcar todas como leídas
         </button>
       )}
+      {avisos.length > noLeidos && (
+        <button
+          type="button"
+          onClick={() => setMostrarLeidas((v) => !v)}
+          className="w-full text-right text-[12px] text-gray-400 py-0.5"
+        >
+          {mostrarLeidas
+            ? "Ocultar leídas"
+            : `Mostrar leídas (${avisos.length - noLeidos})`}
+        </button>
+      )}
 
       {cargando && (
         <div className="space-y-2 animate-pulse pt-2">
@@ -107,13 +124,13 @@ export default function Avisos() {
         </div>
       )}
 
-      {!cargando && avisos.length === 0 && (
+      {!cargando && visibles.length === 0 && (
         <p className="text-center text-sm text-gray-400 pt-16">
           Sin avisos — todo tranquilo. 🎉
         </p>
       )}
 
-      {avisos.map((a) => {
+      {visibles.map((a) => {
         const { Icono, clase } = ICONOS[a.tipo];
         const leido = leidos.has(a.id);
         return (
